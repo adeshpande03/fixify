@@ -52,12 +52,12 @@ app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
-@app.after_request
-def after_request(response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Expires"] = 0
-    response.headers["Pragma"] = "no-cache"
-    return response
+# @app.after_request
+# def after_request(response):
+#     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+#     response.headers["Expires"] = 0
+#     response.headers["Pragma"] = "no-cache"
+#     return response
 
 
 app.config["SESSION_FILE_DIR"] = mkdtemp()
@@ -130,7 +130,54 @@ def callback():
 
     return redirect("/")
 
+
 @app.route("/fix")
 @login_required
 def fix():
-    return render_template("fix.html")
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+
+    # retrieve the first batch of playlists (up to 50)
+    playlists = sp.current_user_playlists(limit=50)
+
+    # initialize an empty list to store all playlist information
+    playlist_info = []
+    all_tracks = []
+    # continue to retrieve playlists in batches of 50 until all playlists have been retrieved
+    while playlists:
+        # extract the relevant playlist information from each playlist object and add it to the playlist_info list
+        for playlist in playlists["items"]:
+            playlist_info.append(
+                {
+                    "name": playlist["name"],
+                    "id": playlist["id"],
+                    "tracks": playlist["tracks"]["total"],
+                }
+            )
+
+        # check if there are more playlists to retrieve
+        if playlists["next"]:
+            # use the 'next' URL to retrieve the next batch of playlists
+            playlists = sp.next(playlists)
+        else:
+            # all playlists have been retrieved
+            playlists = None
+    for info in playlist_info:
+        results = sp.playlist_tracks(info["id"])
+        for item in results["items"]:
+            track = item["track"]
+            if track:
+                info = {
+                    "name": track["name"],
+                    "artist": track["artists"][0]["name"],
+                    "uri": track["uri"],
+                }
+            if info not in all_tracks:
+                all_tracks.append(info)
+
+    # render the playlist information in an HTML unordered list using Flask's templating engine
+    return render_template("fix.html", playlists=playlist_info, tracks=all_tracks)
+
+
+@app.route("/info")
+def info():
+    return render_template("info.html")
