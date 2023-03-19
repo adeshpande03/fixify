@@ -65,3 +65,13 @@ footer {
 .content {
   flex-grow: 1;
 }
+
+footer ul {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+}
+
+footer li {
+  margin: 0 10px;
+}

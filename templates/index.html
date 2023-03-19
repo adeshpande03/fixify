@@ -1,3 +1,17 @@
-{% extends 'base.html' %} 
-
-{% block content %} {% endblock %}
+{% extends 'base.html' %} {% block title %} Home {% endblock %} {% block
+menu_items %} {% if session.response_data and session.status|string() ==
+"active"|string() %}
+<a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
+<a class="nav-item nav-link" href="/info">Info</a>
+<a class="nav-item nav-link" href="/logout">Logout</a>
+{% else %}
+<a class="nav-item nav-link" href="/info">Info</a>
+<a class="nav-item nav-link" href="/login">Log In</a>
+{% endif %} {% endblock %} {% block main %}
+<h1>fixify</h1>
+<p>Fix your broken Spotify playlists!</p>
+{% if session.response_data and session.status|string() == "active"|string() %}
+<p><a href="/fix">Playlist Fixer</a></p>
+{% else %}
+<p><a href="/login">Log In</a></p>
+{% endif %} {% endblock %}
