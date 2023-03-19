@@ -9,15 +9,15 @@
     />
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="{{url_for(static, css/bootstrap.min.css)}}" />
+    <link rel="stylesheet" href="{{url_for(static, css/style.css)}}" />
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="/static/js/jquery-3.6.4.slim.min"></script>
-    <script src="/static/js/popper.min.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
-    
+    <script src="src="{{url_for('static', filename='js/jquery-3.6.4.slim.min.js')}}""></script>
+    <script src="src="{{url_for('static', filename='js/popper.min.js')}}""></script>
+    <script src="src="{{url_for('static', filename='js/bootstrap.min.js')}}""></script>
+
     <title>{% block title %} {% endblock %}</title>
   </head>
   <body>
