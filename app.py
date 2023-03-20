@@ -26,7 +26,7 @@ from flask_session import Session
 from functools import wraps
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from tempfile import mkdtemp
-from time import sleep
+
 
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
@@ -55,18 +55,19 @@ app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
-# @app.after_request
-# def after_request(response):
-#     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-#     response.headers["Expires"] = 0
-#     response.headers["Pragma"] = "no-cache"
-#     return response
+@app.after_request
+def after_request(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Expires"] = 0
+    response.headers["Pragma"] = "no-cache"
+    return response
 
-
+# Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_FILE_DIR"] = mkdtemp()
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
 
 if not os.environ.get("SPOTIPY_CLIENT_ID"):
     raise RuntimeError("SPOTIPY_CLIENT_ID not set")
@@ -138,10 +139,6 @@ def callback():
 @login_required
 def brokensongs():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
-    # client_credentials_manager = SpotifyClientCredentials(
-    #     os.environ.get("SPOTIPY_CLIENT_ID"), os.environ.get("SPOTIPY_CLIENT_SECRET")
-    # )
-    # sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
     playlists = sp.current_user_playlists(limit=50)
     playlist_ids = []
     all_tracks = []
@@ -149,20 +146,19 @@ def brokensongs():
     while playlists:
         for playlist in playlists["items"]:
             playlist_ids.append(
-                # {
-                # "name": playlist["name"],
-                # "id": playlist["id"],
-                # "tracks": playlist["tracks"]["total"],
-                # }
-                playlist["id"]
+                {
+                    "name": playlist["name"],
+                    "id": playlist["id"],
+                    "tracks": playlist["tracks"]["total"],
+                }
             )
         if playlists["next"]:
             playlists = sp.next(playlists)
         else:
             playlists = None
-    print("god dammit")
-    for playlist_id in tqdm(playlist_ids):
-        results = sp.playlist_tracks(playlist_id)
+
+    for playlist in playlist_ids:
+        results = sp.playlist_tracks(playlist["id"])
         for item in results["items"]:
             track = item["track"]
             if track:
@@ -174,31 +170,6 @@ def brokensongs():
                 }
             if info not in all_tracks:
                 all_tracks.append(info)
-    print("Got here!")
-
-    # for track in (all_tracks):
-    #     if track["id"] == None:
-    #         continue
-    #     else:
-    #         track_id = track["id"]
-    #         print(sp.track(track_id)["available_markets"])
-    #         if "US" not in sp.track(track_id)["available_markets"]:
-    #             broken_tracks.append(track)
-
-    for track in all_tracks[:1]:
-        track_id = track["id"]
-        test_track = sp.track(track_id)
-        if "US" not in test_track["available_markets"]:
-            broken_tracks.append(track)
-    print(len(all_tracks))
-    for i in all_tracks[:1]:
-        pprint.pprint(d := i["id"])
-        pprint.pprint(e := sp.track(d))
-        print("US" in e["available_markets"])
-        print()
-    pprint.pprint(f := sp.track("5uaIbU3oHHcSOK6WFNK5nj"))
-    print("US" in f["available_markets"])
-
     return render_template(
         "brokensongs.html", all_tracks=all_tracks, broken_tracks=broken_tracks
     )
