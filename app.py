@@ -171,7 +171,10 @@ def brokensongs():
     #     test_track = sp.track(track_id)
     #     if "US" not in test_track["available_markets"]:
     #         broken_tracks.append(track)
-    return render_template("brokensongs.html", all_tracks=all_tracks, broken_tracks=broken_tracks)
+    print(len(all_tracks))
+    return render_template(
+        "brokensongs.html", all_tracks=all_tracks, broken_tracks=broken_tracks
+    )
 
 
 @app.route("/info")
