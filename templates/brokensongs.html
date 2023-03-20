@@ -4,6 +4,7 @@ block menu_items %}
 <a class="nav-item nav-link" href="/info">Info</a>
 <a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
 <a class="nav-item nav-link" href="/showplaylists">Show Playlists</a>
+<a class="nav-item nav-link active" href="/brokensongs">Broken Songs</a>
 <a class="nav-item nav-link" href="/allsongs">All Songs</a>
 <a class="nav-item nav-link" href="/logout">Logout</a>
 {% endblock %} {% block main %}
@@ -18,12 +19,6 @@ block menu_items %}
   </thead>
   <tbody>
     {%for track in broken_tracks %}
-    <tr>
-      <td>{{track['name']}}</td>
-      <td>{{track['artist']}}</td>
-      <td>{{track['id']}}</td>
-    </tr>
-    {% endfor %} {%for track in all_tracks %}
     <tr>
       <td>{{track['name']}}</td>
       <td>{{track['artist']}}</td>

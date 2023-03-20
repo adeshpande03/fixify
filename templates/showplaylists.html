@@ -1,10 +1,11 @@
-{% extends 'base.html' %} {% block title %} Show Broken Songs {% endblock %} {%
+{% extends 'base.html' %} {% block title %} Show Playlists {% endblock %} {%
 block menu_items %}
 <a class="nav-item nav-link" href="/">Home</a>
 <a class="nav-item nav-link" href="/info">Info</a>
+<a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
+<a class="nav-item nav-link active" href="/showplaylists">Show Playlists</a>
 <a class="nav-item nav-link" href="/brokensongs">Broken Songs</a>
 <a class="nav-item nav-link" href="/allsongs">All Songs</a>
-<a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
 <a class="nav-item nav-link" href="/logout">Logout</a>
 {% endblock %} {% block main %}
 <table>

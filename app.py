@@ -8,7 +8,7 @@ import requests
 import spotipy
 import time
 import urllib.parse
-import pprint
+from pprint import pprint
 from tqdm import tqdm
 from requests.exceptions import ReadTimeout
 
@@ -28,6 +28,8 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from tempfile import mkdtemp
 from spotipy.oauth2 import SpotifyOAuth
 
+from langdetect import detect
+from functools import *
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
@@ -139,29 +141,34 @@ def callback():
     return redirect("/")
 
 
-@app.route("/allsongs")
-@login_required
-def allsongs():
+@cache
+def get_playlists():
+    """Returns a list of all tracks (with names on Spotify) that the user has added to a playlist they have created
+
+    Returns:
+        list: List of all tracks that the user has added to their playlists.
+    """
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = sp.current_user_playlists(limit=50)
-    playlist_ids = []
-    all_tracks = []
-
+    all_playlists = []
+    user_id = sp.current_user()["id"]
     while playlists:
-        for playlist in playlists["items"]:
-            playlist_ids.append(
-                {
-                    "name": playlist["name"],
-                    "id": playlist["id"],
-                    "tracks": playlist["tracks"]["total"],
-                }
-            )
+        for playlist in tqdm(playlists["items"]):
+            if playlist["owner"]["id"] == user_id:
+                all_playlists.append(playlist)
         if playlists["next"]:
             playlists = sp.next(playlists)
         else:
             playlists = None
+    return all_playlists
 
-    for playlist in tqdm(playlist_ids):
+
+@cache
+def get_all_tracks():
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+    playlists = get_playlists()
+    all_tracks = []
+    for playlist in tqdm(playlists):
         results = sp.playlist_tracks(playlist["id"])
         for item in results["items"]:
             track = item["track"]
@@ -182,68 +189,33 @@ def allsongs():
 
             if info not in all_tracks:
                 all_tracks.append(info)
+    return all_tracks
+
+
+@cache
+def get_broken_tracks():
+    broken_tracks = [track for track in get_all_tracks() if track["playable"] == False]
+    return broken_tracks
+
+
+@app.route("/allsongs")
+@login_required
+def allsongs():
+    all_tracks = get_all_tracks()
     return render_template("allsongs.html", all_tracks=all_tracks)
 
 
 @app.route("/brokensongs")
 @login_required
 def brokensongs():
-    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
-
-    playlists = sp.current_user_playlists(limit=50)
-    playlist_ids = []
-    all_tracks = []
-    broken_tracks = []
-    while playlists:
-        for playlist in playlists["items"]:
-            playlist_ids.append(
-                {
-                    "name": playlist["name"],
-                    "id": playlist["id"],
-                    "tracks": playlist["tracks"]["total"],
-                }
-            )
-        if playlists["next"]:
-            playlists = sp.next(playlists)
-        else:
-            playlists = None
-
-    for playlist in tqdm(playlist_ids):
-        results = sp.playlist_tracks(playlist["id"])
-        for item in results["items"]:
-            track = item["track"]
-            if track:
-                info = track
-                # {
-                #     "name": track["name"],
-                #     "artist": track["artists"][0]["name"],
-                #     "uri": track["uri"],
-                #     "id": track["id"],
-                # }
-
-            if info not in all_tracks:
-                all_tracks.append(info)
-    pprint.pprint(all_tracks[:3])
-    return render_template("allsongs.html", all_tracks=all_tracks)
+    broken_tracks = get_broken_tracks()
+    return render_template("brokensongs.html", broken_tracks=broken_tracks)
 
 
 @app.route("/showplaylists")
 @login_required
 def showplaylists():
-    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
-    playlists = sp.current_user_playlists(limit=50)
-    all_playlists = []
-    user_id = sp.current_user()["id"]
-    while playlists:
-        for playlist in tqdm(playlists["items"]):
-            if playlist["owner"]["id"] == user_id:
-                all_playlists.append(playlist)
-        if playlists["next"]:
-            playlists = sp.next(playlists)
-        else:
-            playlists = None
-    pprint.pprint(sp.current_user())
-    pprint.pprint(all_playlists[:3])
+    all_playlists = get_playlists()
     return render_template("showplaylists.html", playlists=all_playlists)
 
 
