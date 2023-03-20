@@ -10,7 +10,7 @@ import time
 import urllib.parse
 import pprint
 from tqdm import tqdm
-
+from requests.exceptions import ReadTimeout
 
 from flask import (
     Flask,
@@ -26,7 +26,7 @@ from flask_session import Session
 from functools import wraps
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from tempfile import mkdtemp
-
+from spotipy.oauth2 import SpotifyOAuth
 
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
@@ -34,7 +34,8 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_API_BASE_URL = "https://api.spotify.com"
 API_VERSION = "v1"
 SPOTIFY_API_URL = "{}/{}".format(SPOTIFY_API_BASE_URL, API_VERSION)
-
+CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
 
 REDIRECT_URI = f"{os.environ.get('SPOTIPY_REDIRECT_URL')}/callback/wb"
 SCOPE = "user-library-read user-library-modify playlist-modify-private playlist-modify-public ugc-image-upload playlist-read-collaborative playlist-read-private"
@@ -61,6 +62,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_FILE_DIR"] = mkdtemp()
@@ -115,12 +117,13 @@ def login_required(func):
 @app.route("/callback/wb")
 def callback():
     auth_token = request.args["code"]
+
     code_payload = {
         "grant_type": "authorization_code",
         "code": str(auth_token),
         "redirect_uri": REDIRECT_URI,
-        "client_id": os.environ.get("SPOTIPY_CLIENT_ID"),
-        "client_secret": os.environ.get("SPOTIPY_CLIENT_SECRET"),
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
     }
     post_request = requests.post(SPOTIFY_TOKEN_URL, data=code_payload)
 
@@ -139,6 +142,7 @@ def callback():
 @login_required
 def brokensongs():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+
     playlists = sp.current_user_playlists(limit=50)
     playlist_ids = []
     all_tracks = []
@@ -157,7 +161,7 @@ def brokensongs():
         else:
             playlists = None
 
-    for playlist in playlist_ids:
+    for playlist in tqdm(playlist_ids):
         results = sp.playlist_tracks(playlist["id"])
         for item in results["items"]:
             track = item["track"]
@@ -170,6 +174,9 @@ def brokensongs():
                 }
             if info not in all_tracks:
                 all_tracks.append(info)
+    print("Jitterbug!")
+    val = sp.track("1KjvS48gsEgt66zH3tLyJT")
+    print(val)
     return render_template(
         "brokensongs.html", all_tracks=all_tracks, broken_tracks=broken_tracks
     )
