@@ -90,6 +90,7 @@ def index():
 def login():
     # Auth Step 1: Authorization
     auth_url = f"{SPOTIFY_AUTH_URL}?{urllib.parse.urlencode(auth_query_parameters)}"
+
     return redirect(auth_url)
 
 
@@ -138,6 +139,52 @@ def callback():
     return redirect("/")
 
 
+@app.route("/allsongs")
+@login_required
+def allsongs():
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+    playlists = sp.current_user_playlists(limit=50)
+    playlist_ids = []
+    all_tracks = []
+
+    while playlists:
+        for playlist in playlists["items"]:
+            playlist_ids.append(
+                {
+                    "name": playlist["name"],
+                    "id": playlist["id"],
+                    "tracks": playlist["tracks"]["total"],
+                }
+            )
+        if playlists["next"]:
+            playlists = sp.next(playlists)
+        else:
+            playlists = None
+
+    for playlist in tqdm(playlist_ids):
+        results = sp.playlist_tracks(playlist["id"])
+        for item in results["items"]:
+            track = item["track"]
+            if (
+                track
+                and track["name"]
+                and track["artists"][0]["name"]
+                and str(track["id"]) != "None"
+            ):
+                playable = "US" in track["available_markets"] or not track["id"]
+                info = {
+                    "name": track["name"],
+                    "artist": track["artists"][0]["name"],
+                    "uri": track["uri"],
+                    "id": track["id"],
+                    "playable": playable,
+                }
+
+            if info not in all_tracks:
+                all_tracks.append(info)
+    return render_template("allsongs.html", all_tracks=all_tracks)
+
+
 @app.route("/brokensongs")
 @login_required
 def brokensongs():
@@ -166,20 +213,38 @@ def brokensongs():
         for item in results["items"]:
             track = item["track"]
             if track:
-                info = {
-                    "name": track["name"],
-                    "artist": track["artists"][0]["name"],
-                    "uri": track["uri"],
-                    "id": track["id"],
-                }
+                info = track
+                # {
+                #     "name": track["name"],
+                #     "artist": track["artists"][0]["name"],
+                #     "uri": track["uri"],
+                #     "id": track["id"],
+                # }
+
             if info not in all_tracks:
                 all_tracks.append(info)
-    print("Jitterbug!")
-    val = sp.track("1KjvS48gsEgt66zH3tLyJT")
-    print(val)
-    return render_template(
-        "brokensongs.html", all_tracks=all_tracks, broken_tracks=broken_tracks
-    )
+    pprint.pprint(all_tracks[:3])
+    return render_template("allsongs.html", all_tracks=all_tracks)
+
+
+@app.route("/showplaylists")
+@login_required
+def showplaylists():
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+    playlists = sp.current_user_playlists(limit=50)
+    all_playlists = []
+    user_id = sp.current_user()["id"]
+    while playlists:
+        for playlist in tqdm(playlists["items"]):
+            if playlist["owner"]["id"] == user_id:
+                all_playlists.append(playlist)
+        if playlists["next"]:
+            playlists = sp.next(playlists)
+        else:
+            playlists = None
+    pprint.pprint(sp.current_user())
+    pprint.pprint(all_playlists[:3])
+    return render_template("showplaylists.html", playlists=all_playlists)
 
 
 @app.route("/info")

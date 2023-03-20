@@ -4,7 +4,7 @@ block menu_items %}
 <a class="nav-item nav-link" href="/info">Info</a>
 <a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
 <a class="nav-item nav-link" href="/showplaylists">Show Playlists</a>
-<a class="nav-item nav-link" href="/allsongs">All Songs</a>
+<a class="nav-item nav-link" href="/brokensongs">Broken Songs</a>
 <a class="nav-item nav-link" href="/logout">Logout</a>
 {% endblock %} {% block main %}
 <table>
@@ -13,21 +13,17 @@ block menu_items %}
       <th>Name</th>
       <th>Owner</th>
       <th>ID</th>
+      <th>Playable</th>
       <!-- <th>Tracks</th> -->
     </tr>
   </thead>
   <tbody>
-    {%for track in broken_tracks %}
+    {%for track in all_tracks %}
     <tr>
       <td>{{track['name']}}</td>
       <td>{{track['artist']}}</td>
       <td>{{track['id']}}</td>
-    </tr>
-    {% endfor %} {%for track in all_tracks %}
-    <tr>
-      <td>{{track['name']}}</td>
-      <td>{{track['artist']}}</td>
-      <td>{{track['id']}}</td>
+      <td>{{track['playable']}}</td>
     </tr>
     {% endfor %}
   </tbody>
