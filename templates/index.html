@@ -13,6 +13,7 @@ menu_items %} {% if session.response_data and session.status|string() ==
 <p>Fix your broken Spotify playlists!</p>
 {% if session.response_data and session.status|string() == "active"|string() %}
 <p><a href="/fix">Playlist Fixer</a></p>
+<p><a href="/brokensongs">Broken Songs</a></p>
 {% else %}
 <p><a href="/login">Log In</a></p>
 {% endif %} {% endblock %}

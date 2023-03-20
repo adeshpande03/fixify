@@ -22,8 +22,13 @@ block menu_items %}
           <td>{{ playlist['tracks'] }}</td>
         </tr>
         {% endfor %} -->
-
-    {%for track in all_tracks %}
+    {%for track in broken_tracks %}
+    <tr>
+      <td>{{track['name']}}</td>
+      <td>{{track['artist']}}</td>
+      <td>{{track['id']}}</td>
+    </tr>
+    {% endfor %} {%for track in all_tracks %}
     <tr>
       <td>{{track['name']}}</td>
       <td>{{track['artist']}}</td>
