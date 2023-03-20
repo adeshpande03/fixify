@@ -131,38 +131,29 @@ def callback():
     return redirect("/")
 
 
-@app.route("/fix")
+@app.route("/brokensongs")
 @login_required
-def fix():
+def brokensongs():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
-
-    # retrieve the first batch of playlists (up to 50)
     playlists = sp.current_user_playlists(limit=50)
-
-    # initialize an empty list to store all playlist information
-    playlist_info = []
+    playlist_ids = []
     all_tracks = []
-    # continue to retrieve playlists in batches of 50 until all playlists have been retrieved
     while playlists:
-        # extract the relevant playlist information from each playlist object and add it to the playlist_info list
         for playlist in playlists["items"]:
-            playlist_info.append(
-                {
-                    "name": playlist["name"],
-                    "id": playlist["id"],
-                    "tracks": playlist["tracks"]["total"],
-                }
+            playlist_ids.append(
+                # {
+                # "name": playlist["name"],
+                # "id": playlist["id"],
+                # "tracks": playlist["tracks"]["total"],
+                # }
+                playlist["id"]
             )
-
-        # check if there are more playlists to retrieve
         if playlists["next"]:
-            # use the 'next' URL to retrieve the next batch of playlists
             playlists = sp.next(playlists)
         else:
-            # all playlists have been retrieved
             playlists = None
-    for info in playlist_info:
-        results = sp.playlist_tracks(info["id"])
+    for playlist_id in playlist_ids:
+        results = sp.playlist_tracks(playlist_id)
         for item in results["items"]:
             track = item["track"]
             if track:
@@ -170,12 +161,17 @@ def fix():
                     "name": track["name"],
                     "artist": track["artists"][0]["name"],
                     "uri": track["uri"],
+                    "id": track["id"],
                 }
             if info not in all_tracks:
                 all_tracks.append(info)
-
-    # render the playlist information in an HTML unordered list using Flask's templating engine
-    return render_template("fix.html", playlists=playlist_info, tracks=all_tracks)
+    broken_tracks = []
+    # for track in all_tracks:
+    #     track_id = track["id"]
+    #     test_track = sp.track(track_id)
+    #     if "US" not in test_track["available_markets"]:
+    #         broken_tracks.append(track)
+    return render_template("brokensongs.html", all_tracks=all_tracks, broken_tracks=broken_tracks)
 
 
 @app.route("/info")

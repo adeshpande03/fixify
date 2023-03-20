@@ -1,0 +1,35 @@
+{% extends 'base.html' %} {% block title %} Show Broken Songs {% endblock %} {%
+block menu_items %}
+<a class="nav-item nav-link" href="/">Home</a>
+<a class="nav-item nav-link" href="/info">Info</a>
+<a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
+<a class="nav-item nav-link" href="/logout">Logout</a>
+{% endblock %} {% block main %}
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Owner</th>
+      <th>ID</th>
+      <!-- <th>Tracks</th> -->
+    </tr>
+  </thead>
+  <tbody>
+    <!-- {% for playlist in playlists %}
+        <tr>
+          <td>{{ playlist['name'] }}</td>
+          <td>{{ playlist['owner'] }}</td>
+          <td>{{ playlist['tracks'] }}</td>
+        </tr>
+        {% endfor %} -->
+
+    {%for track in all_tracks %}
+    <tr>
+      <td>{{track['name']}}</td>
+      <td>{{track['artist']}}</td>
+      <td>{{track['id']}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
