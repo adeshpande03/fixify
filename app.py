@@ -178,15 +178,12 @@ def get_all_tracks():
         offset = 0
         results = None
         while True:
-            results = sp.playlist_tracks(playlist['id'], limit=limit, offset=offset)
+            results = sp.playlist_tracks(playlist["id"], limit=limit, offset=offset)
             if not results["items"]:
                 break
             for item in results["items"]:
                 track = item["track"]
-                if (
-                        track
-                        and track["name"]
-                    ):
+                if track and track["name"]:
                     playable = "US" in track["available_markets"] or not track["id"]
                     info = {
                         "name": track["name"],
@@ -213,6 +210,7 @@ def generate_youtube_object():
     return youtube
 
 
+@cache
 def search_video(query):
     try:
         youtube = generate_youtube_object()
@@ -264,17 +262,22 @@ def playlist_tracks(playlist_id):
             break
         for item in results["items"]:
             track = item["track"]
-            if (
-                    track
-                    and track["name"]
-                ):
+            if track and track["name"]:
                 playable = "US" in track["available_markets"] or not track["id"]
+                query = (
+                    f'{track["name"]} by {track["artists"][0]["name"]}'
+                    if track["artists"][0]["name"] != "Various Arists"
+                    else f'{track["name"]}'
+                )
+                video_id, video_name = search_video(query)
                 info = {
                     "name": track["name"],
                     "artist": track["artists"][0]["name"],
                     "uri": track["uri"],
                     "id": track["id"],
                     "playable": playable,
+                    "video_id": video_id,
+                    "video_name": video_name
                 }
                 all_tracks.append(info)
 
