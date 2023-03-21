@@ -222,3 +222,8 @@ def showplaylists():
 @app.route("/info")
 def info():
     return render_template("info.html")
+
+
+@app.route("/fix")
+def fix():
+    return render_template("fix.html")
