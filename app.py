@@ -198,6 +198,18 @@ def get_broken_tracks():
     return broken_tracks
 
 
+@app.route("/info")
+def info():
+    return render_template("info.html")
+
+
+@app.route("/showplaylists")
+@login_required
+def showplaylists():
+    all_playlists = get_playlists()
+    return render_template("showplaylists.html", playlists=all_playlists)
+
+
 @app.route("/allsongs")
 @login_required
 def allsongs():
@@ -212,18 +224,14 @@ def brokensongs():
     return render_template("brokensongs.html", broken_tracks=broken_tracks)
 
 
-@app.route("/showplaylists")
+@app.route("/songdownloader")
 @login_required
-def showplaylists():
-    all_playlists = get_playlists()
-    return render_template("showplaylists.html", playlists=all_playlists)
-
-
-@app.route("/info")
-def info():
-    return render_template("info.html")
+def songdownloader():
+    
+    return render_template("songdownloader.html")
 
 
 @app.route("/fix")
+@login_required
 def fix():
     return render_template("fix.html")
