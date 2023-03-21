@@ -173,17 +173,20 @@ def get_all_tracks():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = get_playlists()
     all_tracks = []
-    limit = 100
-    offset = 0
     for playlist in tqdm(playlists):
+        limit = 100
+        offset = 0
         results = None
         while True:
-            results = sp.playlist_tracks(playlist["id"], limit=limit, offset=offset)
+            results = sp.playlist_tracks(playlist['id'], limit=limit, offset=offset)
             if not results["items"]:
                 break
             for item in results["items"]:
                 track = item["track"]
-                if track and track["name"]:
+                if (
+                        track
+                        and track["name"]
+                    ):
                     playable = "US" in track["available_markets"] or not track["id"]
                     info = {
                         "name": track["name"],
@@ -192,8 +195,8 @@ def get_all_tracks():
                         "id": track["id"],
                         "playable": playable,
                     }
-                    if info not in all_tracks:
-                        all_tracks.append(info)
+                    all_tracks.append(info)
+
             offset += limit
     return all_tracks
 
@@ -261,7 +264,10 @@ def playlist_tracks(playlist_id):
             break
         for item in results["items"]:
             track = item["track"]
-            if track and track["name"]:
+            if (
+                    track
+                    and track["name"]
+                ):
                 playable = "US" in track["available_markets"] or not track["id"]
                 info = {
                     "name": track["name"],
