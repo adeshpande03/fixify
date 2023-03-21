@@ -146,7 +146,7 @@ def callback():
     return redirect("/")
 
 
-@cache
+@lru_cache
 def get_playlists():
     """Returns a list of all tracks (with names on Spotify) that the user has added to a playlist they have created
 
@@ -159,7 +159,7 @@ def get_playlists():
     user_id = sp.current_user()["id"]
     while playlists:
         for playlist in tqdm(playlists["items"]):
-            if playlist["owner"]["id"] == user_id:
+            # if playlist["owner"]["id"] == user_id:
                 all_playlists.append(playlist)
         if playlists["next"]:
             playlists = sp.next(playlists)
@@ -168,7 +168,7 @@ def get_playlists():
     return all_playlists
 
 
-@cache
+@lru_cache
 def get_all_tracks():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = get_playlists()
@@ -198,22 +198,17 @@ def get_all_tracks():
     return all_tracks
 
 
-@cache
+@lru_cache
 def get_broken_tracks():
     broken_tracks = [track for track in get_all_tracks() if track["playable"] == False]
     return broken_tracks
 
 
-@cache
-def generate_youtube_object():
-    youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
-    return youtube
 
-
-@cache
+@lru_cache
 def search_video(query):
     try:
-        youtube = generate_youtube_object()
+        youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
         search_response = (
             youtube.search()
             .list(
@@ -233,6 +228,7 @@ def search_video(query):
         else:
             return None, None
     except HttpError as e:
+        print(e)
         return None, None
 
 
@@ -260,7 +256,7 @@ def playlist_tracks(playlist_id):
         results = sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
         if not results["items"]:
             break
-        for item in results["items"]:
+        for item in tqdm(results["items"]):
             track = item["track"]
             if track and track["name"]:
                 playable = "US" in track["available_markets"] or not track["id"]
@@ -309,3 +305,8 @@ def songdownloader():
 @login_required
 def fix():
     return render_template("fix.html")
+
+def test_youtube_search():
+    print(search_video("The Promise - Baghtos Kay Mujra Kar (Title Track) by Siddharth Mahadevan"))
+    
+test_youtube_search()

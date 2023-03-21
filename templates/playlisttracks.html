@@ -14,8 +14,9 @@ block menu_items %}
     <tr>
       <th>Name</th>
       <th>Owner</th>
-      <th>ID</th>
+      <th>Spotify ID</th>
       <th>Playable</th>
+      <th>Youtube Video Name</th>
     </tr>
   </thead>
   <tbody>
@@ -25,6 +26,13 @@ block menu_items %}
       <td>{{track['artist']}}</td>
       <td>{{track['id']}}</td>
       <td>{{track['playable']}}</td>
+      <td>
+        <a
+          href="https://www.youtube.com/watch?v={{ track['video_id'] }}"
+          target="_blank"
+          >{{track['video_name']}}</a
+        >
+      </td>
     </tr>
     {% endfor %}
   </tbody>
