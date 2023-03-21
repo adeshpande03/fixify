@@ -3,22 +3,23 @@ menu_items %} {% if session.response_data and session.status|string() ==
 "active"|string() %}
 <a class="nav-item nav-link active" href="/">Home</a>
 <a class="nav-item nav-link" href="/info">Info</a>
-<a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
 <a class="nav-item nav-link" href="/showplaylists">Show Playlists</a>
-<a class="nav-item nav-link" href="/brokensongs">Broken Songs</a>
 <a class="nav-item nav-link" href="/allsongs">All Songs</a>
+<a class="nav-item nav-link" href="/brokensongs">Broken Songs</a>
+<a class="nav-item nav-link" href="/fix">Playlist Fixer</a>
 <a class="nav-item nav-link" href="/logout">Logout</a>
 {% else %}
+<a class="nav-item nav-link active" href="/">Home</a>
 <a class="nav-item nav-link" href="/info">Info</a>
 <a class="nav-item nav-link" href="/login">Log In</a>
 {% endif %} {% endblock %} {% block main %}
 <h1>fixify</h1>
 <p>Fix your broken Spotify playlists!</p>
 {% if session.response_data and session.status|string() == "active"|string() %}
-<p><a href="/fix">Playlist Fixer</a></p>
+<p><a href="/showplaylists">Show Playlists</a></p>
 <p><a href="/brokensongs">Broken Songs</a></p>
 <p><a href="/allsongs">All Songs</a></p>
-<p><a href="/showplaylists">Show Playlists</a></p>
+<p><a href="/fix">Playlist Fixer</a></p>
 {% else %}
 <p><a href="/login">Log In</a></p>
 {% endif %} {% endblock %}
