@@ -22,8 +22,12 @@ block menu_items %}
   <tbody>
     {% for playlist in playlists %}
     <tr>
-      <td>{{ playlist['name'] }}</td>
-      <td>{{playlist['id']}}</td>
+      <td>
+        <a href="{{ url_for('playlist_tracks', playlist_id=playlist['id']) }}"
+          >{{ playlist['name'] }}</a
+        >
+      </td>
+      <td>{{ playlist['id'] }}</td>
       <td>{{ playlist['tracks']['total'] }}</td>
       <!-- <td>{{playlist['owner']['id']}}</td> -->
       <!-- <td>{{playlist['id']}}</td> -->

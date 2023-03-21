@@ -27,7 +27,8 @@ from functools import wraps
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from tempfile import mkdtemp
 from spotipy.oauth2 import SpotifyOAuth
-
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from langdetect import detect
 from functools import *
 
@@ -38,6 +39,7 @@ API_VERSION = "v1"
 SPOTIFY_API_URL = "{}/{}".format(SPOTIFY_API_BASE_URL, API_VERSION)
 CLIENT_ID = os.environ.get("SPOTIPY_CLIENT_ID")
 CLIENT_SECRET = os.environ.get("SPOTIPY_CLIENT_SECRET")
+YOUTUBE_API_KEY = os.environ.get("YT_API_KEY")
 
 REDIRECT_URI = f"{os.environ.get('SPOTIPY_REDIRECT_URL')}/callback/wb"
 SCOPE = "user-library-read user-library-modify playlist-modify-private playlist-modify-public ugc-image-upload playlist-read-collaborative playlist-read-private"
@@ -81,6 +83,9 @@ if not os.environ.get("SPOTIPY_CLIENT_SECRET"):
 
 if not os.environ.get("SPOTIPY_REDIRECT_URL"):
     raise RuntimeError("SPOTIPY_REDIRECT_URL not set")
+
+if not os.environ.get("YT_API_KEY"):
+    raise RuntimeError("YouTube API Key not set")
 
 
 @app.route("/")
@@ -168,27 +173,28 @@ def get_all_tracks():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = get_playlists()
     all_tracks = []
+    limit = 100
+    offset = 0
     for playlist in tqdm(playlists):
-        results = sp.playlist_tracks(playlist["id"])
-        for item in results["items"]:
-            track = item["track"]
-            if (
-                track
-                and track["name"]
-                and track["artists"][0]["name"]
-                and str(track["id"]) != "None"
-            ):
-                playable = "US" in track["available_markets"] or not track["id"]
-                info = {
-                    "name": track["name"],
-                    "artist": track["artists"][0]["name"],
-                    "uri": track["uri"],
-                    "id": track["id"],
-                    "playable": playable,
-                }
-
-            if info not in all_tracks:
-                all_tracks.append(info)
+        results = None
+        while True:
+            results = sp.playlist_tracks(playlist["id"], limit=limit, offset=offset)
+            if not results["items"]:
+                break
+            for item in results["items"]:
+                track = item["track"]
+                if track and track["name"]:
+                    playable = "US" in track["available_markets"] or not track["id"]
+                    info = {
+                        "name": track["name"],
+                        "artist": track["artists"][0]["name"],
+                        "uri": track["uri"],
+                        "id": track["id"],
+                        "playable": playable,
+                    }
+                    if info not in all_tracks:
+                        all_tracks.append(info)
+            offset += limit
     return all_tracks
 
 
@@ -196,6 +202,37 @@ def get_all_tracks():
 def get_broken_tracks():
     broken_tracks = [track for track in get_all_tracks() if track["playable"] == False]
     return broken_tracks
+
+
+@cache
+def generate_youtube_object():
+    youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
+    return youtube
+
+
+def search_video(query):
+    try:
+        youtube = generate_youtube_object()
+        search_response = (
+            youtube.search()
+            .list(
+                q=query,
+                part="id,snippet",
+                type="video",
+                maxResults=1,
+                fields="items(id(videoId),snippet(title))",
+            )
+            .execute()
+        )
+
+        if len(search_response["items"]) > 0:
+            video_id = search_response["items"][0]["id"]["videoId"]
+            video_title = search_response["items"][0]["snippet"]["title"]
+            return video_id, video_title
+        else:
+            return None, None
+    except HttpError as e:
+        return None, None
 
 
 @app.route("/info")
@@ -208,6 +245,35 @@ def info():
 def showplaylists():
     all_playlists = get_playlists()
     return render_template("showplaylists.html", playlists=all_playlists)
+
+
+@app.route("/playlist/<playlist_id>")
+@login_required
+def playlist_tracks(playlist_id):
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+    all_tracks = []
+    limit = 100
+    offset = 0
+    results = None
+    while True:
+        results = sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
+        if not results["items"]:
+            break
+        for item in results["items"]:
+            track = item["track"]
+            if track and track["name"]:
+                playable = "US" in track["available_markets"] or not track["id"]
+                info = {
+                    "name": track["name"],
+                    "artist": track["artists"][0]["name"],
+                    "uri": track["uri"],
+                    "id": track["id"],
+                    "playable": playable,
+                }
+                all_tracks.append(info)
+
+        offset += limit
+    return render_template("playlisttracks.html", tracks=all_tracks)
 
 
 @app.route("/allsongs")
@@ -227,7 +293,6 @@ def brokensongs():
 @app.route("/songdownloader")
 @login_required
 def songdownloader():
-    
     return render_template("songdownloader.html")
 
 
