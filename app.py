@@ -283,10 +283,10 @@ def songdownloader():
     return render_template("songdownloader.html")
 
 
-@app.route("/fix")
+@app.route("/songfixer")
 @login_required
 def fix():
-    return render_template("fix.html")
+    return render_template("songfixer.html")
 
 
 @app.route("/download/<video_id>")
