@@ -36,6 +36,8 @@ from googleapiclient.errors import HttpError
 from langdetect import detect
 from functools import *
 import yt_dlp
+import youtube_dl
+import subprocess
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
@@ -294,14 +296,25 @@ def fix():
 @app.route("/download/<video_id>")
 def download_video(video_id):
     video_url = f"https://www.youtube.com/watch?v={video_id}"
-    # video_title = VideosSearch(video_id, limit=1).result()["result"][0]["title"]
+    video_title = VideosSearch(video_id, limit=1).result()["result"][0]["title"]
     ydl_opts = {
-        "format": "best",
-        "outtmpl": tempfile.mktemp(prefix="youtube-", suffix=".mp4"),
+        "format": "bestaudio/best",
+        "outtmpl": "downloads/temp_audio.%(ext)s",
         "quiet": True,
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(video_url, download=True)
         filename = ydl.prepare_filename(info)
-    return send_file(filename, as_attachment=True, download_name=filename)
+    return send_file(
+        "downloads/temp_audio.mp3",
+        as_attachment=True,
+        download_name=f"{video_title}.mp3",
+    )
