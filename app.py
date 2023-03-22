@@ -1,3 +1,4 @@
+import tempfile
 import base64
 import datetime
 import html
@@ -5,12 +6,14 @@ import json
 import os
 import re
 import requests
+from bs4 import BeautifulSoup
 import spotipy
 import time
 import urllib.parse
 from pprint import pprint
 from tqdm import tqdm
 from requests.exceptions import ReadTimeout
+from youtubesearchpython import VideosSearch
 
 from flask import (
     Flask,
@@ -21,6 +24,7 @@ from flask import (
     request,
     session,
     stream_with_context,
+    send_file,
 )
 from flask_session import Session
 from functools import wraps
@@ -31,6 +35,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from langdetect import detect
 from functools import *
+import yt_dlp
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
@@ -84,8 +89,8 @@ if not os.environ.get("SPOTIPY_CLIENT_SECRET"):
 if not os.environ.get("SPOTIPY_REDIRECT_URL"):
     raise RuntimeError("SPOTIPY_REDIRECT_URL not set")
 
-if not os.environ.get("YT_API_KEY"):
-    raise RuntimeError("YouTube API Key not set")
+# if not os.environ.get("YT_API_KEY"):
+#     raise RuntimeError("YouTube API Key not set")
 
 
 @app.route("/")
@@ -160,7 +165,7 @@ def get_playlists():
     while playlists:
         for playlist in tqdm(playlists["items"]):
             # if playlist["owner"]["id"] == user_id:
-                all_playlists.append(playlist)
+            all_playlists.append(playlist)
         if playlists["next"]:
             playlists = sp.next(playlists)
         else:
@@ -204,32 +209,10 @@ def get_broken_tracks():
     return broken_tracks
 
 
-
 @lru_cache
 def search_video(query):
-    try:
-        youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
-        search_response = (
-            youtube.search()
-            .list(
-                q=query,
-                part="id,snippet",
-                type="video",
-                maxResults=1,
-                fields="items(id(videoId),snippet(title))",
-            )
-            .execute()
-        )
-
-        if len(search_response["items"]) > 0:
-            video_id = search_response["items"][0]["id"]["videoId"]
-            video_title = search_response["items"][0]["snippet"]["title"]
-            return video_id, video_title
-        else:
-            return None, None
-    except HttpError as e:
-        print(e)
-        return None, None
+    result = VideosSearch(query, limit=1).result()
+    return result['result'][0]['id'], result['result'][0]['title']
 
 
 @app.route("/info")
@@ -273,7 +256,7 @@ def playlist_tracks(playlist_id):
                     "id": track["id"],
                     "playable": playable,
                     "video_id": video_id,
-                    "video_name": video_name
+                    "video_name": video_name,
                 }
                 all_tracks.append(info)
 
@@ -306,7 +289,17 @@ def songdownloader():
 def fix():
     return render_template("fix.html")
 
-def test_youtube_search():
-    print(search_video("The Promise - Baghtos Kay Mujra Kar (Title Track) by Siddharth Mahadevan"))
-    
-test_youtube_search()
+
+@app.route("/download/<video_id>")
+def download_video(video_id):
+    video_url = f"https://www.youtube.com/watch?v={video_id}"
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "outtmpl": tempfile.mktemp(prefix="youtube-", suffix=".mp4"),
+        "quiet": True,
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(video_url, download=True)
+        filename = ydl.prepare_filename(info)
+    return send_file(filename, as_attachment=True, download_name=filename)

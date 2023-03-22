@@ -17,6 +17,7 @@ block menu_items %}
       <th>Spotify ID</th>
       <th>Playable</th>
       <th>Youtube Video Name</th>
+      <th>Download Link</th>
     </tr>
   </thead>
   <tbody>
@@ -33,6 +34,7 @@ block menu_items %}
           >{{track['video_name']}}</a
         >
       </td>
+      <td><a href="/download/{{track['video_id']}}">Download</a></td>
     </tr>
     {% endfor %}
   </tbody>
