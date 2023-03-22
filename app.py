@@ -1,37 +1,40 @@
-import tempfile
-import base64
 import datetime
-import html
 import json
 import os
-import re
 import requests
-from bs4 import BeautifulSoup
 import spotipy
-import time
 import urllib.parse
 from pprint import pprint
 from tqdm import tqdm
 from youtubesearchpython import VideosSearch
-
 from flask import (
     Flask,
-    flash,
     redirect,
     render_template,
-    Response,
     request,
     session,
-    stream_with_context,
     send_file,
+    # Response,
+    # flash,
+    # stream_with_context,
 )
 from flask_session import Session
 from functools import wraps
-from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from tempfile import mkdtemp
-from spotipy.oauth2 import SpotifyOAuth
 from functools import *
 import yt_dlp
+
+# import re
+# import html
+# import base64
+# import tempfile
+# from bs4 import BeautifulSoup
+# import time
+# from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
+# from spotipy.oauth2 import SpotifyOAuth
+# from requests.exceptions import ReadTimeout
+# import subprocess
+
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
@@ -96,7 +99,6 @@ def index():
 
 @app.route("/login")
 def login():
-    # Auth Step 1: Authorization
     auth_url = f"{SPOTIFY_AUTH_URL}?{urllib.parse.urlencode(auth_query_parameters)}"
 
     return redirect(auth_url)
@@ -157,7 +159,7 @@ def get_playlists():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = sp.current_user_playlists(limit=50)
     all_playlists = []
-    user_id = sp.current_user()["id"]
+    # user_id = sp.current_user()["id"]
     while playlists:
         for playlist in tqdm(playlists["items"]):
             # if playlist["owner"]["id"] == user_id:
@@ -306,9 +308,8 @@ def download_video(video_id):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(video_url, download=True)
-
     return send_file(
         "downloads/temp_audio.mp3",
         as_attachment=True,
-        download_name=f"{video_title}.mp3",
+        attachment_filename=(video_title + ".mp3"),
     )
