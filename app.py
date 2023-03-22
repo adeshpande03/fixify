@@ -212,7 +212,7 @@ def get_broken_tracks():
 @lru_cache
 def search_video(query):
     result = VideosSearch(query, limit=1).result()
-    return result['result'][0]['id'], result['result'][0]['title']
+    return result["result"][0]["id"], result["result"][0]["title"]
 
 
 @app.route("/info")
@@ -229,6 +229,7 @@ def showplaylists():
 
 @app.route("/playlist/<playlist_id>")
 @login_required
+@lru_cache
 def playlist_tracks(playlist_id):
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     all_tracks = []
@@ -293,8 +294,9 @@ def fix():
 @app.route("/download/<video_id>")
 def download_video(video_id):
     video_url = f"https://www.youtube.com/watch?v={video_id}"
+    # video_title = VideosSearch(video_id, limit=1).result()["result"][0]["title"]
     ydl_opts = {
-        "format": "bestaudio/best",
+        "format": "best",
         "outtmpl": tempfile.mktemp(prefix="youtube-", suffix=".mp4"),
         "quiet": True,
     }

@@ -14,7 +14,7 @@ block menu_items %}
     <tr>
       <th>Name</th>
       <th>Owner</th>
-      <th>Spotify ID</th>
+      <!-- <th>Spotify ID</th> -->
       <th>Playable</th>
       <th>Youtube Video Name</th>
       <th>Download Link</th>
@@ -25,7 +25,7 @@ block menu_items %}
     <tr>
       <td>{{track['name']}}</td>
       <td>{{track['artist']}}</td>
-      <td>{{track['id']}}</td>
+      <!-- <td>{{track['id']}}</td> -->
       <td>{{track['playable']}}</td>
       <td>
         <a
@@ -34,7 +34,7 @@ block menu_items %}
           >{{track['video_name']}}</a
         >
       </td>
-      <td><a href="/download/{{track['video_id']}}">Download</a></td>
+      <td><a href="/download/{{ track['video_id'] }}">Download</a></td>
     </tr>
     {% endfor %}
   </tbody>
