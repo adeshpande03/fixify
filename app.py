@@ -12,7 +12,6 @@ import time
 import urllib.parse
 from pprint import pprint
 from tqdm import tqdm
-from requests.exceptions import ReadTimeout
 from youtubesearchpython import VideosSearch
 
 from flask import (
@@ -31,13 +30,8 @@ from functools import wraps
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from tempfile import mkdtemp
 from spotipy.oauth2 import SpotifyOAuth
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from langdetect import detect
 from functools import *
 import yt_dlp
-import youtube_dl
-import subprocess
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
@@ -312,7 +306,7 @@ def download_video(video_id):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(video_url, download=True)
-        filename = ydl.prepare_filename(info)
+
     return send_file(
         "downloads/temp_audio.mp3",
         as_attachment=True,
