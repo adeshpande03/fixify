@@ -297,10 +297,22 @@ def fix():
     return render_template("songfixer.html")
 
 
-@app.route("/download/<video_id>")
-def download_video(video_id):
+@app.route("/download/<song_id>")
+@login_required
+def download_video(song_id):
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+    track = sp.track(song_id)
+    pprint(track)
+    query = (
+        f'{track["name"]} {track["artists"][0]["name"]}'
+        if track["artists"][0]["name"] != "Various Arists"
+        else f'{track["name"]}'
+    )
+    print(query)
+    video_id, video_name = search_video(query)
+    print(video_name)
     video_url = f"https://www.youtube.com/watch?v={video_id}"
-    video_title = VideosSearch(video_id, limit=1).result()["result"][0]["title"]
+    print(video_url)
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": "downloads/temp_audio.%(ext)s",
@@ -316,15 +328,16 @@ def download_video(video_id):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         audio = ydl.extract_info(video_url, download=True)
-    audiofile = eyed3.load("ytdltesting/downloads/" + video_title + ".mp3")
-    audiofile.tag.images.set(
-    ImageFrame.FRONT_COVER, open("static/img/Fatteshikast.jpeg", "rb").read(), "image/jpeg")
-    audiofile.tag.save()
+
+    # audiofile = eyed3.load("ytdltesting/downloads/" + video_title + ".mp3")
+    # audiofile.tag.images.set(
+    # ImageFrame.FRONT_COVER, open("static/img/Fatteshikast.jpeg", "rb").read(), "image/jpeg")
+    # audiofile.tag.save()
     send_file
     return send_file(
         "downloads/temp_audio.mp3",
         as_attachment=True,
-        download_name=(video_title + ".mp3"),
+        download_name=(video_name + ".mp3"),
     )
 
 

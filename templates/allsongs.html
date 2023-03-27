@@ -14,8 +14,9 @@ block menu_items %}
     <tr>
       <th>Name</th>
       <th>Owner</th>
-      <th>ID</th>
+      <!-- <th>ID</th> -->
       <th>Playable</th>
+      <th>Download</th>
     </tr>
   </thead>
   <tbody>
@@ -23,8 +24,9 @@ block menu_items %}
     <tr>
       <td>{{track['name']}}</td>
       <td>{{track['artist']}}</td>
-      <td>{{track['id']}}</td>
+      <!-- <td>{{track['id']}}</td> -->
       <td>{{track['playable']}}</td>
+      <td><a href="/download/{{ track['id'] }}">Download</a></td>
     </tr>
     {% endfor %}
   </tbody>
