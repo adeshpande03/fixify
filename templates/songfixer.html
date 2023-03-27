@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% block title %} Song Fixer {% endblock %} {%
-block menu_items %}
+{% extends 'base.html' %} {% block title %} Song Fixer {% endblock %} {% block
+menu_items %}
 <a class="nav-item nav-link" href="/">Home</a>
 <a class="nav-item nav-link" href="/info">Info</a>
 <a class="nav-item nav-link" href="/showplaylists">Show Playlists</a>
@@ -8,4 +8,10 @@ block menu_items %}
 <a class="nav-item nav-link" href="/songdownloader">Song Downloader</a>
 <a class="nav-item nav-link active" href="/songfixer">Song Fixer</a>
 <a class="nav-item nav-link" href="/logout">Logout</a>
+{% endblock %} {% block main %}
+<h1>Upload an Image</h1>
+<form action="/upload" method="POST" enctype="multipart/form-data">
+  <input type="file" name="photo" accept="image/*" /><br /><br />
+  <input type="submit" value="Upload" />
+</form>
 {% endblock %}

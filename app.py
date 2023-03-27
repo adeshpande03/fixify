@@ -8,6 +8,7 @@ import urllib.parse
 from pprint import pprint
 from tqdm import tqdm
 from youtubesearchpython import VideosSearch
+from flask_uploads import UploadSet, IMAGES, configure_uploads
 from flask import (
     Flask,
     redirect,
@@ -24,6 +25,8 @@ from functools import wraps
 from tempfile import mkdtemp
 from functools import *
 import yt_dlp
+import eyed3
+from eyed3.id3.frames import ImageFrame
 
 # import re
 # import html
@@ -60,7 +63,12 @@ auth_query_parameters = {
 
 
 app = Flask(__name__)
+photos = UploadSet("photos", IMAGES)
 
+app.config["UPLOADS_DEFAULT_DEST"] = "static/img"
+app.config["UPLOADS_DEFAULT_URL"] = "/static/img"
+
+configure_uploads(app, photos)
 
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -71,7 +79,6 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
-
 
 
 app.config["SESSION_FILE_DIR"] = mkdtemp()
@@ -308,9 +315,23 @@ def download_video(video_id):
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(video_url, download=True)
+        audio = ydl.extract_info(video_url, download=True)
+    audiofile = eyed3.load("ytdltesting/downloads/" + video_title + ".mp3")
+    audiofile.tag.images.set(
+    ImageFrame.FRONT_COVER, open("static/img/Fatteshikast.jpeg", "rb").read(), "image/jpeg")
+    audiofile.tag.save()
+    send_file
     return send_file(
         "downloads/temp_audio.mp3",
         as_attachment=True,
-        attachment_filename=(video_title + ".mp3"),
+        download_name=(video_title + ".mp3"),
     )
+
+
+# @app.route("/upload", methods=["POST"])
+# def upload():
+#     if "photo" in request.files:
+#         filename = photos.save(request.files["photo"])
+#         return render_template("songfixer.html")
+#     else:
+#         return "No image uploaded.", 400

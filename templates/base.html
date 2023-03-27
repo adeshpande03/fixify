@@ -20,11 +20,11 @@
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="{{url_for('static', filename='js/jquery-3.6.4.slim.min.js') }}"></script>
-    <script src="{{url_for('static', filename='js/popper.min.js') }}"></script>
-    <script src="{{url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script src="{{url_for('static', filename='js/scripts.js') }}"></script>
-
+    <script src="{{ url_for('static', filename='js/jquery-3.6.4.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    <link rel="icon" href="static/img/tempIcon.png" />
     <title>{% block title %} {% endblock %}</title>
   </head>
   <body onload="readyMessage()">
