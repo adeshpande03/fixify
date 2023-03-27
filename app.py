@@ -2,7 +2,10 @@ import datetime
 import json
 import os
 import zipfile
+from glob import glob
+from io import BytesIO
 import requests
+from zipfile import ZipFile
 import spotipy
 import urllib.parse
 from pprint import pprint
@@ -347,3 +350,8 @@ def download_video(song_id):
         as_attachment=True,
         download_name=(track["name"] + ".mp3"),
     )
+
+@app.route("/zipall")
+@login_required
+def zipall():
+    pass
