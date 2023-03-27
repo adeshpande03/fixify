@@ -347,12 +347,3 @@ def download_video(song_id):
         as_attachment=True,
         download_name=(track["name"] + ".mp3"),
     )
-
-
-# @app.route("/upload", methods=["POST"])
-# def upload():
-#     if "photo" in request.files:
-#         filename = photos.save(request.files["photo"])
-#         return render_template("songfixer.html")
-#     else:
-#         return "No image uploaded.", 400
