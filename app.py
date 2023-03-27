@@ -328,16 +328,24 @@ def download_video(song_id):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         audio = ydl.extract_info(video_url, download=True)
-
-    # audiofile = eyed3.load("ytdltesting/downloads/" + video_title + ".mp3")
-    # audiofile.tag.images.set(
-    # ImageFrame.FRONT_COVER, open("static/img/Fatteshikast.jpeg", "rb").read(), "image/jpeg")
-    # audiofile.tag.save()
-    send_file
+    url = track["album"]["images"][0]["url"]
+    response = requests.get(url)
+    with open("static/img/tempimg.jpeg", "wb") as f:
+        f.write(response.content)
+    audiofile = eyed3.load("downloads/temp_audio.mp3")
+    audiofile.tag.images.set(
+        ImageFrame.FRONT_COVER,
+        open("static/img/tempimg.jpeg", "rb").read(),
+        "image/jpeg",
+    )
+    audiofile.tag.artist = track["artists"][0]["name"]
+    audiofile.tag.album = track["album"]["name"]
+    audiofile.tag.save()
+    os.remove("static/img/tempimg.jpeg")
     return send_file(
         "downloads/temp_audio.mp3",
         as_attachment=True,
-        download_name=(video_name + ".mp3"),
+        download_name=(track["name"] + ".mp3"),
     )
 
 
