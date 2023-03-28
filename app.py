@@ -305,7 +305,7 @@ def fix():
 def download_video(song_id):
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     track = sp.track(song_id)
-    pprint(track)
+    # pprint(track)
     query = (
         f'{track["name"]} {track["artists"][0]["name"]}'
         if track["artists"][0]["name"] != "Various Arists"
