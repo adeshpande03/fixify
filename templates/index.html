@@ -16,6 +16,14 @@ menu_items %} {% if session.response_data and session.status|string() ==
 {% endif %} {% endblock %} {% block main %}
 <h1>fixify</h1>
 <p>Fix your broken Spotify playlists!</p>
+<p>
+  Before you try logging in, apply for beta access
+  <a
+    href="https://docs.google.com/forms/d/e/1FAIpQLSdf97FQDUrUp7cGVYSYW2O2yft5IPjce7D8qquwwyr4cWzOWA/viewform?usp=sf_link"
+  >
+    here</a
+  >.
+</p>
 {% if session.response_data and session.status|string() == "active"|string() %}
 <p><a href="/showplaylists">Show Playlists</a></p>
 <p><a href="/allsongs">All Songs</a></p>
