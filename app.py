@@ -291,7 +291,7 @@ def fix():
 def download_video(song_id):
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     track = sp.track(song_id)
-    # pprint(track)
+
     query = (
         f'{track["name"]} {track["artists"][0]["name"]}'
         if track["artists"][0]["name"] != "Various Arists"
@@ -337,7 +337,7 @@ def download_video(song_id):
         download_name=(track["name"] + ".mp3"),
     )
 
-@app.route("/zipall")
-@login_required
-def zipall():
-    pass
+# @app.route("/zipall")
+# @login_required
+# def zipall():
+#     pass
