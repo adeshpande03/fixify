@@ -1,15 +1,10 @@
 import datetime
 import json
 import os
-import zipfile
-from glob import glob
-from io import BytesIO
 import requests
-from zipfile import ZipFile
 import spotipy
 import urllib.parse
 from pprint import pprint
-from tqdm import tqdm
 from youtubesearchpython import VideosSearch
 from flask_uploads import UploadSet, IMAGES, configure_uploads
 from flask import (
@@ -19,9 +14,6 @@ from flask import (
     request,
     session,
     send_file,
-    # Response,
-    # flash,
-    # stream_with_context,
 )
 from flask_session import Session
 from functools import wraps
@@ -31,16 +23,11 @@ import yt_dlp
 import eyed3
 from eyed3.id3.frames import ImageFrame
 
-# import re
-# import html
-# import base64
-# import tempfile
-# from bs4 import BeautifulSoup
-# import time
-# from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
-# from spotipy.oauth2 import SpotifyOAuth
-# from requests.exceptions import ReadTimeout
-# import subprocess
+
+#import for future functionality
+# import zipfile
+# from glob import glob
+# from io import BytesIO
 
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
@@ -172,7 +159,7 @@ def get_playlists():
     all_playlists = []
     # user_id = sp.current_user()["id"]
     while playlists:
-        for playlist in tqdm(playlists["items"]):
+        for playlist in (playlists["items"]):
             # if playlist["owner"]["id"] == user_id:
             all_playlists.append(playlist)
         if playlists["next"]:
@@ -187,7 +174,7 @@ def get_all_tracks():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = get_playlists()
     all_tracks = []
-    for playlist in tqdm(playlists):
+    for playlist in (playlists):
         limit = 100
         offset = 0
         results = None
@@ -249,7 +236,7 @@ def playlist_tracks(playlist_id):
         results = sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
         if not results["items"]:
             break
-        for item in tqdm(results["items"]):
+        for item in (results["items"]):
             track = item["track"]
             if track and track["name"]:
                 playable = "US" in track["available_markets"] or not track["id"]
