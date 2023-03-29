@@ -4,7 +4,6 @@ import os
 import requests
 import spotipy
 import urllib.parse
-from pprint import pprint
 from youtubesearchpython import VideosSearch
 from flask_uploads import UploadSet, IMAGES, configure_uploads
 from flask import (
