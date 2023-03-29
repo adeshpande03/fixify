@@ -146,7 +146,7 @@ def callback():
     return redirect("/")
 
 
-@lru_cache
+
 def get_playlists():
     """Returns a list of all tracks (with names on Spotify) that the user has added to a playlist they have created
 
@@ -168,7 +168,7 @@ def get_playlists():
     return all_playlists
 
 
-@lru_cache
+
 def get_all_tracks():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = get_playlists()
@@ -198,7 +198,7 @@ def get_all_tracks():
     return all_tracks
 
 
-@lru_cache
+
 def get_broken_tracks():
     broken_tracks = [track for track in get_all_tracks() if track["playable"] == False]
     return broken_tracks
@@ -224,7 +224,6 @@ def showplaylists():
 
 @app.route("/playlist/<playlist_id>")
 @login_required
-@lru_cache
 def playlist_tracks(playlist_id):
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     all_tracks = []
