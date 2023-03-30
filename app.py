@@ -296,11 +296,11 @@ def download_video(song_id):
         if track["artists"][0]["name"] != "Various Arists"
         else f'{track["name"]}'
     )
-    print(query)
+    # print(query)
     video_id, video_name = search_video(query)
-    print(video_name)
+    # print(video_name)
     video_url = f"https://www.youtube.com/watch?v={video_id}"
-    print(video_url)
+    # print(video_url)
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": "downloads/temp_audio.%(ext)s",
@@ -315,7 +315,7 @@ def download_video(song_id):
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        audio = ydl.extract_info(video_url, download=True)
+        ydl.extract_info(video_url, download=True)
     url = track["album"]["images"][0]["url"]
     response = requests.get(url)
     with open("static/img/tempimg.jpeg", "wb") as f:
@@ -336,7 +336,3 @@ def download_video(song_id):
         download_name=(track["name"] + ".mp3"),
     )
 
-# @app.route("/zipall")
-# @login_required
-# def zipall():
-#     pass
