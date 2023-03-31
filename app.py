@@ -243,15 +243,15 @@ def playlist_tracks(playlist_id):
                     if track["artists"][0]["name"] != "Various Arists"
                     else f'{track["name"]}'
                 )
-                video_id, video_name = search_video(query)
+                # video_id, video_name = search_video(query)
                 info = {
                     "name": track["name"],
                     "artist": track["artists"][0]["name"],
                     "uri": track["uri"],
                     "id": track["id"],
                     "playable": playable,
-                    "video_id": video_id,
-                    "video_name": video_name,
+                    # "video_id": video_id,
+                    # "video_name": video_name,
                 }
                 all_tracks.append(info)
 

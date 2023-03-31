@@ -27,13 +27,13 @@ block menu_items %}
       <td>{{track['artist']}}</td>
       <!-- <td>{{track['id']}}</td> -->
       <td>{{track['playable']}}</td>
-      <td>
+      <!-- <td>
         <a
           href="https://www.youtube.com/watch?v={{ track['video_id'] }}"
           target="_blank"
           >{{track['video_name']}}</a
         >
-      </td>
+      </td> -->
       <td><a href="/download/{{ track['id'] }}">Download</a></td>
     </tr>
     {% endfor %}
