@@ -75,3 +75,34 @@ footer ul {
 footer li {
   margin: 0 10px;
 }
+
+td {
+  text-align: center;
+}
+
+table {
+  border: 1px solid;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid #ddd;
+  height: 2rem;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+th {
+  background-color: #04aa6d;
+  color: white;
+}
+
+table {
+  width: 100%;
+}
