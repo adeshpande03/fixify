@@ -336,3 +336,7 @@ def download_video(song_id):
         download_name=(track["name"] + ".mp3"),
     )
 
+@app.route('/megaplaylist')
+@login_required
+def megaplaylist():
+    return render_template("megaplaylist.html")
