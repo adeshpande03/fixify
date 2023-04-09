@@ -13,6 +13,7 @@ from flask import (
     request,
     session,
     send_file,
+    make_response
 )
 from flask_session import Session
 from functools import wraps
@@ -23,10 +24,11 @@ import eyed3
 from eyed3.id3.frames import ImageFrame
 
 
-#import for future functionality
-# import zipfile
-# from glob import glob
-# from io import BytesIO
+# import for future functionality
+import shutil
+import zipfile
+from glob import glob
+from io import BytesIO
 
 
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/en/authorize"
@@ -146,7 +148,6 @@ def callback():
     return redirect("/")
 
 
-
 def get_playlists():
     """Returns a list of all tracks (with names on Spotify) that the user has added to a playlist they have created
 
@@ -158,7 +159,7 @@ def get_playlists():
     all_playlists = []
     # user_id = sp.current_user()["id"]
     while playlists:
-        for playlist in (playlists["items"]):
+        for playlist in playlists["items"]:
             # if playlist["owner"]["id"] == user_id:
             all_playlists.append(playlist)
         if playlists["next"]:
@@ -168,12 +169,11 @@ def get_playlists():
     return all_playlists
 
 
-
 def get_all_tracks():
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     playlists = get_playlists()
     all_tracks = []
-    for playlist in (playlists):
+    for playlist in playlists:
         limit = 100
         offset = 0
         results = None
@@ -197,6 +197,39 @@ def get_all_tracks():
             offset += limit
     return all_tracks
 
+
+def get_urls_from_playlist(playlist_id):
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+    all_yt_links = []
+    limit = 100
+    offset = 0
+    results = None
+    while True:
+        results = sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
+        if not results["items"]:
+            break
+        for item in results["items"]:
+            track = item["track"]
+            if track and track["name"]:
+                query = (
+                    f'{track["name"]} by {track["artists"][0]["name"]}'
+                    if track["artists"][0]["name"] != "Various Arists"
+                    else f'{track["name"]}'
+                )
+                video_id, video_name = search_video(query)
+                playable = "US" in track["available_markets"] or not track["id"]
+                link = f"https://www.youtube.com/watch?v={video_id}"
+                info = {
+                    "link": link,
+                    "name": track["name"],
+                    "artist": track["artists"][0]["name"],
+                    "playable": playable,
+                    "album_art_url": track["album"]["images"][0]["url"],
+                    "id": track["id"],
+                }
+                all_yt_links.append(info)
+        offset += limit
+    return all_yt_links
 
 
 def get_broken_tracks():
@@ -234,7 +267,7 @@ def playlist_tracks(playlist_id):
         results = sp.playlist_tracks(playlist_id, limit=limit, offset=offset)
         if not results["items"]:
             break
-        for item in (results["items"]):
+        for item in results["items"]:
             track = item["track"]
             if track and track["name"]:
                 playable = "US" in track["available_markets"] or not track["id"]
@@ -256,7 +289,9 @@ def playlist_tracks(playlist_id):
                 all_tracks.append(info)
 
         offset += limit
-    return render_template("playlisttracks.html", tracks=all_tracks)
+    return render_template(
+        "playlisttracks.html", playlist=playlist_id, tracks=all_tracks
+    )
 
 
 @app.route("/allsongs")
@@ -296,11 +331,8 @@ def download_video(song_id):
         if track["artists"][0]["name"] != "Various Arists"
         else f'{track["name"]}'
     )
-    # print(query)
     video_id, video_name = search_video(query)
-    # print(video_name)
     video_url = f"https://www.youtube.com/watch?v={video_id}"
-    # print(video_url)
     ydl_opts = {
         "format": "bestaudio/best",
         "outtmpl": "downloads/temp_audio.%(ext)s",
@@ -318,12 +350,12 @@ def download_video(song_id):
         ydl.extract_info(video_url, download=True)
     url = track["album"]["images"][0]["url"]
     response = requests.get(url)
-    with open("static/img/tempimg.jpeg", "wb") as f:
+    with open(f"static/img/{track['name']}tempimg.jpeg", "wb") as f:
         f.write(response.content)
     audiofile = eyed3.load("downloads/temp_audio.mp3")
     audiofile.tag.images.set(
         ImageFrame.FRONT_COVER,
-        open("static/img/tempimg.jpeg", "rb").read(),
+        open(f"static/img/{track['name']}tempimg.jpeg", "rb").read(),
         "image/jpeg",
     )
     audiofile.tag.artist = track["artists"][0]["name"]
@@ -336,7 +368,43 @@ def download_video(song_id):
         download_name=(track["name"] + ".mp3"),
     )
 
-@app.route('/megaplaylist')
+
+@app.route("/megaplaylist")
 @login_required
 def megaplaylist():
     return render_template("megaplaylist.html")
+
+
+#!THIS IS STILL IN ALPHA
+@app.route("/downloadall/<playlist_id>")
+@login_required
+def downloadall(playlist_id):
+    sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
+    link_list = get_urls_from_playlist(playlist_id)
+    name = f"{sp.playlist(playlist_id)['name']}"
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "outtmpl": name + "/%(title)s",
+        "quiet": True,
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
+    }
+    url_list = [url['link'] for url in link_list]
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download(url_list)
+    
+    with zipfile.ZipFile(f"{name}.zip", "w") as zipf:
+        for url in link_list:
+            info = yt_dlp.YoutubeDL(ydl_opts).extract_info(url["link"], download=False)
+            video_filename = yt_dlp.YoutubeDL(ydl_opts).prepare_filename(info) + ".mp3"
+            zipf.write(video_filename)
+    zipf.close()
+    shutil.rmtree(name)    
+    response = make_response(send_file(f"{name}.zip", as_attachment=True))
+    os.remove(f"{name}.zip")
+    return response
