@@ -13,7 +13,7 @@ from flask import (
     request,
     session,
     send_file,
-    make_response
+    make_response,
 )
 from flask_session import Session
 from functools import wraps
@@ -361,7 +361,7 @@ def download_video(song_id):
     audiofile.tag.artist = track["artists"][0]["name"]
     audiofile.tag.album = track["album"]["name"]
     audiofile.tag.save()
-    os.remove("static/img/tempimg.jpeg")
+    os.remove(f"static/img/{track['name']}tempimg.jpeg")
     return send_file(
         "downloads/temp_audio.mp3",
         as_attachment=True,
@@ -394,17 +394,17 @@ def downloadall(playlist_id):
             }
         ],
     }
-    url_list = [url['link'] for url in link_list]
+    url_list = [url["link"] for url in link_list]
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download(url_list)
-    
+
     with zipfile.ZipFile(f"{name}.zip", "w") as zipf:
         for url in link_list:
             info = yt_dlp.YoutubeDL(ydl_opts).extract_info(url["link"], download=False)
             video_filename = yt_dlp.YoutubeDL(ydl_opts).prepare_filename(info) + ".mp3"
             zipf.write(video_filename)
     zipf.close()
-    shutil.rmtree(name)    
+    shutil.rmtree(name)
     response = make_response(send_file(f"{name}.zip", as_attachment=True))
     os.remove(f"{name}.zip")
     return response
