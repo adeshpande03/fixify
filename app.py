@@ -332,6 +332,7 @@ def download_video(song_id):
         else f'{track["name"]}'
     )
     video_id, video_name = search_video(query)
+    # print(video_id, video_name)
     video_url = f"https://www.youtube.com/watch?v={video_id}"
     ydl_opts = {
         "format": "bestaudio/best",
@@ -381,6 +382,7 @@ def megaplaylist():
 def downloadall(playlist_id):
     sp = spotipy.Spotify(auth=session["response_data"]["access_token"])
     link_list = get_urls_from_playlist(playlist_id)
+    print(link_list)
     name = f"{sp.playlist(playlist_id)['name']}"
     ydl_opts = {
         "format": "bestaudio/best",
